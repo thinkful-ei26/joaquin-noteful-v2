@@ -2,7 +2,7 @@
 
 const knex = require('../knex');
 
-let searchTerm = 'gaga';
+let searchTerm = 'Baz';
 knex
   .select('notes.id', 'title', 'content')
   .from('notes')
@@ -18,3 +18,9 @@ knex
   .catch(err => {
     console.error(err);
   });
+
+knex
+  .select('notes.id', 'title', 'content')
+  .from('notes')
+  .where('notes.id', 'id')
+  .then(results => console.log(JSON.stringify(results[0])));

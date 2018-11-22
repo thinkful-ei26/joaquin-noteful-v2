@@ -1,9 +1,26 @@
-SELECT CURRENT_DATE;
-DROP TABLE IF EXISTS notes;
-CREATE TABLE notes( , title text not null, content text, modified timestamp default CURRENT_TIMESTAMP);
+-- SELECT CURRENT_DATE;
+-- DROP TABLE IF EXISTS notes;
+-- DROP TABLE IF EXISTS folders;
+
+-- CREATE TABLE folders( id serial PRIMARY KEY, name text NOT NULL);
+
+-- INSERT INTO folders(name)VALUES('Archive'),('Drafts'),('Personal'),('Work');
 
 
-INSERT INTO notes(title, content)values('Things to do with your life', 'All sorts of things and other things'),('Baz to not do','Golf, read Shakespeare'),('Things to never do','Go back to high school'),('Things to never do','Go back to high school'),('Foo','Go back to high school'),('Bar','Go back to high school'),('Bam to never do','Go back to high school');
 
--- INSERT INTO notes( content)values('no title on this one');
--- DETAIL:  Failing row contains (8, null, no title on this one, 2018-11-19 13:24:34.248702).
+-- CREATE TABLE notes(id serial PRIMARY KEY, title text not null, content text, created timestamp DEFAULT now(), folder_id int REFERENCES folders(id) ON DELETE SET NULL);
+
+-- ALTER SEQUENCE notes_id_seq RESTART with 1000;
+
+-- INSERT INTO notes(title, content, folder_id)values('Things to do with your life', 'All sorts of things and other things',null),('Baz to not do','Golf, read Shakespeare',1),('Things to never do','Go back to high school',2),('Things to never do','Go back to high school',3);
+
+SELECT * FROM notes
+INNER JOIN folders ON notes.folder_id = folders.id;
+
+SELECT * FROM notes
+LEFT JOIN folders ON notes.folder_id = folders.id;
+
+SELECT * FROM notes
+LEFT JOIN folders ON notes.folder_id = folders.id
+WHERE notes.id = 1003;
+

@@ -6,8 +6,10 @@ const cors = require('cors');
 
 const { PORT } = require('./config');
 
+const scratchRouter = require('./scratch/queries.js');
 const notesRouter = require('./routes/notes');
 const foldersRouter = require('./routes/folders');
+
 
 // Create an Express application
 const app = express();
@@ -25,6 +27,7 @@ app.use(cors());
 app.use(express.json());
 
 // Mount router on "/api"
+// app.use('/scratch/queries');
 app.use('/api/notes', notesRouter);
 app.use('/api/folders', foldersRouter);
 

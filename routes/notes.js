@@ -7,9 +7,10 @@ const knex = require('../knex');
 const router = express.Router();
 
 // TEMP: Simple In-Memory Database
-const data = require('../db/notes');
-const simDB = require('../db/simDB');
-const notes = simDB.initialize(data);
+// const data = require('../db/notes');
+// const simDB = require('../db/simDB');
+// const notes = simDB.initialize(data);
+
 
 // Get All (and search by query)
 router.get('/', (req, res, next) => {
@@ -61,8 +62,10 @@ router.put('/:id', (req, res, next) => {
     .from('notes')
     .update(updateObj)
     .where('id', `${id}`)
-    .returning(id)
-    .then(response => res.json(notes));
+    // .returning(id)
+    .then((result) => {
+      res.json(result);
+    });
 });
 
 // Post (insert) an item
@@ -79,7 +82,7 @@ router.post('/', (req, res, next) => {
   knex
     .insert([{ title: title, ' content': content }])
     .into('notes')
-    .then(response => res.json(notes));
+    .then(result => res.json(result));
 });
 
 // Delete an item

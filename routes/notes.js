@@ -35,25 +35,11 @@ router.get('/:id', (req, res, next) => {
     .from('notes')
     .where({ 'notes.id': id })
     .then(results => res.json(results[0]));
-
-  // notes
-  //   .find(id)
-  //   .then(item => {
-  //     if (item) {
-  //       res.json(item);
-  //     } else {
-  //       next();
-  //     }
-  //   })
-  //   .catch(err => {
-  //     next(err);
-  //   });
 });
 
 // Put update an item
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
-
   /***** Never trust users - validate input *****/
   const updateObj = {};
   const updateableFields = ['title', 'content'];
@@ -70,28 +56,13 @@ router.put('/:id', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-
+  console.log('update obj', updateObj);
   knex
     .from('notes')
-    .where('id', id)
-    .update({
-      title: updateObj.title,
-      content: updateObj.content
-    })
-    .returning(updateObj)
-    .then(console.log);
-  // // notes
-  //   .update(id, updateObj)
-  //   .then(item => {
-  //     if (item) {
-  //       res.json(item);
-  //     } else {
-  //       next();
-  //     }
-  //   })
-  //   .catch(err => {
-  //     next(err);
-  //   });
+    .update(updateObj)
+    .where('id', `${id}`)
+    .returning(id)
+    .then(response => res.json(notes));
 });
 
 // Post (insert) an item
@@ -109,38 +80,16 @@ router.post('/', (req, res, next) => {
     .insert([{ title: title, ' content': content }])
     .into('notes')
     .then(response => res.json(notes));
-  // notes
-  //   .create(newItem)
-  //   .then(item => {
-  //     if (item) {
-  //       res
-  //         .location(`http://${req.headers.host}/notes/${item.id}`)
-  //         .status(201)
-  //         .json(item);
-  //     }
-  //   })
-  //   .catch(err => {
-  //     next(err);
-  //   });
 });
 
 // Delete an item
 router.delete('/:id', (req, res, next) => {
   const id = req.params.id;
   knex
-    .delete()
+    .del()
     .from('notes')
     .where('id', id)
-    .then(res.Status(204));
-
-  // notes
-  //   .delete(id)
-  //   .then(() => {
-  //     res.sendStatus(204);
-  //   })
-  //   .catch(err => {
-  //     next(err);
-  //   });
+    .then(() => res.sendStatus(204));
 });
 
 module.exports = router;

@@ -11,21 +11,29 @@ const router = express.Router();
 // const simDB = require('../db/simDB');
 // const notes = simDB.initialize(data);
 
-
 // Get All (and search by query)
 router.get('/', (req, res, next) => {
   const { searchTerm } = req.query;
+  const { folderId } = req.query;
 
   knex
-    .select('notes.id', 'title', 'content')
+    .select('notes.id', 'title', 'folders.id', 'folders.name')
     .from('notes')
+    .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .modify(queryBuilder => {
       if (searchTerm) {
-        queryBuilder.where('title', 'content', 'like', `%${searchTerm}%`);
+        queryBuilder.where('title', 'like', `%${searchTerm}%`);
       }
     })
+    .modify(function(queryBuilder){
+      if(folderId) {
+        queryBuilder.where('folder_id',folderId);
+      }
+    })
+    .orderBy('notes.id')
     .then(results => res.json(results));
 });
+//  .catch(err => next(err));
 
 // Get a single item
 router.get('/:id', (req, res, next) => {
@@ -62,7 +70,7 @@ router.put('/:id', (req, res, next) => {
     .update(updateObj)
     .where('id', `${id}`)
     // .returning(id)
-    .then((result) => {
+    .then(result => {
       res.json(result);
     });
 });

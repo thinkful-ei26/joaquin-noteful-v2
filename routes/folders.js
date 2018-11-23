@@ -7,7 +7,8 @@ const knex = require('../knex');
 const router = express.Router();
 //GET all
 router.get('/', (req, res, next) => {
-  knex.select('folders.id', 'folders.name')
+  knex
+    .select('folders.id', 'folders.name')
     .from('folders')
     .then(results => {
       res.json(results);
@@ -41,22 +42,47 @@ router.put('/:id', (req, res, next) => {
   });
 
   /***** Never trust users - validate input *****/
-  if (!updateObj.title) {
-    const err = new Error('Missing `title` in request body');
+  if (!updateObj.name) {
+    const err = new Error('Missing `name` in request body');
     err.status = 400;
     return next(err);
   }
 
   knex
-    .from('notes')
+    .from('folders')
+    .update(
+      updateObj
+    )
     .where('id', id)
-    .update({
-      title: updateObj.title,
-      content: updateObj.content
-    })
-    .returning(updateObj)
-    .then(console.log);
+    // .returning('*')
+    .then(result => res.json(result));
 });
 
+/*********POST */
+router.post('/', (req, res, next) => {
+  const { name } = req.body;
+
+  const newItem = { name };
+  /***** Never trust users - validate input *****/
+  if (!newItem.name) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+  knex
+    .insert([{ name: name }])
+    .into('folders')
+    .then(result => res.json(result));
+});
+
+/***********DELETE */
+router.delete('/:id', (req, res, next) => {
+  const id = req.params.id;
+  knex
+    .del()
+    .from('folders')
+    .where('id', id)
+    .then(() => res.sendStatus(204));
+});
 
 module.exports = router;

@@ -6,7 +6,7 @@ const cors = require('cors');
 
 const { PORT } = require('./config');
 
-const scratchRouter = require('./scratch/queries.js');
+// const scratchRouter = require('./scratch/queries.js');
 const notesRouter = require('./routes/notes');
 const foldersRouter = require('./routes/folders');
 

@@ -57,7 +57,6 @@ router.put('/:id', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-  console.log('update obj', updateObj);
   knex
     .from('notes')
     .update(updateObj)

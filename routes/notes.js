@@ -39,40 +39,74 @@ router.get('/', (req, res, next) => {
 router.get('/:id', (req, res, next) => {
   const id = req.params.id;
 
-  knex
-    .select('notes.id', 'title', 'content')
-    .from('notes')
+  knex('notes')
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name')
+    .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .where({ 'notes.id': id })
-    .then(results => res.json(results[0]));
+    .then(([result]) => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    });
 });
 
 // Put update an item
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
   /***** Never trust users - validate input *****/
-  const updateObj = {};
-  const updateableFields = ['title', 'content'];
+  const notesId = req.params.id;
+  const { title, content, folderId } = req.body; //updateable fields
 
-  updateableFields.forEach(field => {
-    if (field in req.body) {
-      updateObj[field] = req.body[field];
-    }
-  });
+  // const updateObj = {};
+  // const updateableFields = ['title', 'content'];
+
+  // updateableFields.forEach(field => {
+  //   if (field in req.body) {
+  //     updateObj[field] = req.body[field];
+  //   }
+  // });
 
   /***** Never trust users - validate input *****/
-  if (!updateObj.title) {
+  if (!title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
+  const updateNotes = {
+    title,
+    content,
+    folder_id: folderId ? folderId : null
+  };
+
   knex
     .from('notes')
-    .update(updateObj)
-    .where('id', `${id}`)
-    // .returning(id)
-    .then(result => {
-      res.json(result);
-    });
+    .update(updateNotes)
+    .where('id', `${notesId}`)
+    .returning([id])
+    .then(() => {
+      // Using the noteId, select the note and the folder info
+      return knex
+        .select(
+          'notes.id',
+          'title',
+          'content',
+          'folder_id as folderId',
+          'folders.name as folderName'
+        )
+        .from('notes')
+        .leftJoin('folders', 'notes.folder_id', 'folders.id')
+        .where('notes.id', notesId);
+    })
+    .then(([result]) => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
 // Post (insert) an item
@@ -82,7 +116,7 @@ router.post('/', (req, res, next) => {
   const newItem = {
     title,
     content,
-    folder_id: folderId ? folderId : null
+    folder_id: (folderId) ? folderId : null
   };
   /***** Never trust users - validate input *****/
   if (!title) {

@@ -34,7 +34,7 @@ values('5 life lessons', 'Things about cats', 1),
     ('Things to do with your life', 'All sorts of things and other things', 2),
     ('Things to not do', 'Golf, read Shakespeare', 3),
     ('More Things to not do', 'Golf, read Shakespeare', 4),
-    ('someothertitle', 'someother content', 4), ('someothertitle', 'someother content', 2), ('someothertitle', 'someother content', 3), ('title 100', 'content 100', null);
+    ('someothertitle', 'someother content', 4), ('someothertitle', 'someother content', 2), ('someothertitle', 'someother content', 3), ('title 100', 'content 100', 3);
 
 
 -- ALTER SEQUENCE notes_id_seq RESTART with 1000;

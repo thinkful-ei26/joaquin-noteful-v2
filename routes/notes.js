@@ -25,9 +25,9 @@ router.get('/', (req, res, next) => {
         queryBuilder.where('title', 'like', `%${searchTerm}%`);
       }
     })
-    .modify(function(queryBuilder){
-      if(folderId) {
-        queryBuilder.where('folder_id',folderId);
+    .modify(function(queryBuilder) {
+      if (folderId) {
+        queryBuilder.where('folder_id', folderId);
       }
     })
     .orderBy('notes.id')
@@ -77,19 +77,46 @@ router.put('/:id', (req, res, next) => {
 
 // Post (insert) an item
 router.post('/', (req, res, next) => {
-  const { title, content } = req.body;
+  const { title, content, folderId } = req.body;
 
-  const newItem = { title, content };
+  const newItem = {
+    title,
+    content,
+    folder_id: folderId ? folderId : null
+  };
   /***** Never trust users - validate input *****/
-  if (!newItem.title) {
+  if (!title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
   knex
-    .insert([{ title: title, ' content': content }])
+    .insert(newItem)
     .into('notes')
-    .then(result => res.json(result));
+    .returning('id')
+    .then(([id]) => {
+      //array destructuring
+      // notesId = id;
+      // Using the new id, select the new note and the folder
+      return knex
+        .select(
+          'notes.id',
+          'title',
+          'content',
+          'folder_id as folderId',
+          'folders.name as folderName'
+        )
+        .from('notes')
+        .leftJoin('folders', 'notes.folder_id', 'folders.id')
+        .where('notes.id', id);
+    })
+    .then(([result]) => {
+      res
+        .location(`${req.originalUrl}/${result.id}`)
+        .status(201)
+        .json(result);
+    })
+    .catch(err => next(err));
 });
 
 // Delete an item
@@ -99,7 +126,12 @@ router.delete('/:id', (req, res, next) => {
     .del()
     .from('notes')
     .where('id', id)
-    .then(() => res.sendStatus(204));
+    .then(() => {
+      res.sendStatus(204);
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 module.exports = router;

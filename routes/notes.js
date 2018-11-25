@@ -156,10 +156,9 @@ router.post('/', (req, res, next) => {
 // Delete an item
 router.delete('/:id', (req, res, next) => {
   const id = req.params.id;
-  knex
-    .del()
-    .from('notes')
+  knex('notes')
     .where('id', id)
+    .del()
     .then(() => {
       res.sendStatus(204);
     })

@@ -21,10 +21,19 @@ router.get('/:id', (req, res, next) => {
   const id = req.params.id;
 
   knex
-    .select('folders.id', 'folders.name')
+    .select('id', 'name')
     .from('folders')
     .where({ 'folders.id': id })
-    .then(results => res.json(results[0]));
+    .then(([result]) => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 // Put update an item
@@ -32,30 +41,39 @@ router.put('/:id', (req, res, next) => {
   const id = req.params.id;
 
   /***** Never trust users - validate input *****/
-  const updateObj = {};
-  const updateableFields = ['name'];
+  // const updateObj = {};
+  // const updateableFields = ['name'];
+  const { name } = req.body;
 
-  updateableFields.forEach(field => {
-    if (field in req.body) {
-      updateObj[field] = req.body[field];
-    }
-  });
+  // updateableFields.forEach(field => {
+  //   if (field in req.body) {
+  //     updateObj[field] = req.body[field];
+  //   }
+  // });
 
   /***** Never trust users - validate input *****/
-  if (!updateObj.name) {
+  if (!name) {
     const err = new Error('Missing `name` in request body');
     err.status = 400;
     return next(err);
   }
+  const updateName = { name };
 
   knex
     .from('folders')
-    .update(
-      updateObj
-    )
+    .update(updateName)
     .where('id', id)
-    // .returning('*')
-    .then(result => res.json(result));
+    .returning('*')
+    .then(([result]) => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 /*********POST */
@@ -64,25 +82,39 @@ router.post('/', (req, res, next) => {
 
   const newItem = { name };
   /***** Never trust users - validate input *****/
-  if (!newItem.name) {
+  if (!name) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
   knex
-    .insert([{ name: name }])
+    .insert(newItem)
     .into('folders')
-    .then(result => res.json(result));
+    .returning(['id', 'name'])
+    .then(([result]) => {
+      if (result) {
+        // res.location(`http://${req.headers.host}/folders/${result.id}`).status(201).json(result);
+        res
+          .location(`${req.originalUrl}/${result.id}`)
+          .status(201)
+          .json(result);
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 /***********DELETE */
 router.delete('/:id', (req, res, next) => {
   const id = req.params.id;
-  knex
-    .del()
-    .from('folders')
+  knex('folders')
     .where('id', id)
-    .then(() => res.sendStatus(204));
+    .del()
+    .then(() => res.sendStatus(204))
+    .catch(err => {
+      next(err);
+    });
 });
 
 module.exports = router;
